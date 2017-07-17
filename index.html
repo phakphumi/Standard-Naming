@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My first Vue app</title>
+  <script src="https://unpkg.com/vue"></script>
+</head>
+<body>
+
+  <div id="app">
+    <template v-for="(msg,index) in messages">
+      <currency-input
+        v-model="msg.logical"
+        v-bind:physical="physical(index)"
+        v-bind:business="business(index)"
+      ></currency-input>
+    </template>
+  </div>
+
+  <script src="https://unpkg.com/lodash@4.13.1/lodash.min.js"></script>
+  <script>
+
+    Vue.component('currency-input', {
+      template: '\
+        <div>\
+          <input\
+            ref="input"\
+            v-bind:value="value"\
+            v-on:input="updateValue($event.target.value)"\
+          >\
+          {{ physical }}\
+          {{ business }}\
+        </div>\
+      ',
+      props: {
+        value: {
+          type: String,
+          default: ''
+        },
+        physical: {
+          type: String,
+          default: ''
+        },
+        business: {
+          type: String,
+          default: ''
+        }
+      },
+      methods: {
+        updateValue: function (value) {
+          this.$emit('input', value)
+        },
+      }
+    })
+
+    new Vue({
+      el: '#app',
+      data: {
+        messages : [{ logical: 'hello' }, { logical: 'vue' }]
+      },
+      methods: {
+        physical: function (index) {
+          return this.messages[index].logical
+        },
+        business: function (index) {
+          return 'Calculating business...' + this.messages[index].logical
+        }
+      }
+    })
+
+  </script>
+</body>
+</html>
