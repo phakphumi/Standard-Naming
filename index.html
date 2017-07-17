@@ -10,10 +10,12 @@
     <template v-for="(msg,index) in messages">
       <currency-input
         v-model="msg.logical"
+        v-bind:get-id="getId(index)"
         v-bind:physical="physical(index)"
         v-bind:business="business(index)"
         v-bind:standard-define="standardDefine(index)"
         v-on:add-new-row="addNewRow(index)"
+        v-on:delete-row="deleteRow(index)"
       ></currency-input>
     </template>
   </div>
@@ -24,8 +26,10 @@
     Vue.component('currency-input', {
       template: '\
         <div>\
+          <button v-on:click="deleteRow()">Delete</button>\
           <input\
             ref="input"\
+            v-bind:id="getId"\
             v-bind:value="value"\
             v-on:input="updateValue($event.target.value)"\
             v-on:keyup.enter="addNewRow($event.target.value)"\
@@ -39,6 +43,10 @@
         value: {
           type: String,
           default: ''
+        },
+        getId: {
+          type: String,
+          default: 'logical-0'
         },
         physical: {
           type: String,
@@ -61,8 +69,20 @@
           if(value !== '') {
             this.$emit('add-new-row')
           }
+        },
+        deleteRow: function () {
+          this.$emit('delete-row')
+        },
+        setFocus: function () {
+          document.getElementById(this.getId).focus();
         }
-      }
+      },
+      mounted: function () {
+        this.setFocus()
+      },
+      updated: function () {
+        this.setFocus()
+      },
     })
 
     new Vue({
@@ -71,6 +91,9 @@
         messages : [{ logical: '' }]
       },
       methods: {
+        getId: function (index) {
+          return "logical-" + index
+        },
         physical: function (index) {
           return this.messages[index].logical
         },
@@ -85,7 +108,12 @@
           }
         },
         addNewRow: function (index) {
-          this.messages.splice(index+1,0,{ logical: 'insertRow' })
+          this.messages.splice(index+1,0,{ logical: '' })
+        },
+        deleteRow: function (index) {
+          if( this.messages.length > 1 ) {
+            this.messages.splice(index,1)
+          }
         }
       }
     })
