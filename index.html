@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My first Vue app</title>
+  <title>Standard Naming</title>
   <script src="https://unpkg.com/vue"></script>
 </head>
 <body>
@@ -12,6 +12,8 @@
         v-model="msg.logical"
         v-bind:physical="physical(index)"
         v-bind:business="business(index)"
+        v-bind:standard-define="standardDefine(index)"
+        v-on:add-new-row="addNewRow(index)"
       ></currency-input>
     </template>
   </div>
@@ -26,9 +28,11 @@
             ref="input"\
             v-bind:value="value"\
             v-on:input="updateValue($event.target.value)"\
+            v-on:keyup.enter="addNewRow($event.target.value)"\
           >\
           {{ physical }}\
           {{ business }}\
+          {{ standardDefine }}\
         </div>\
       ',
       props: {
@@ -43,26 +47,45 @@
         business: {
           type: String,
           default: ''
+        },
+        standardDefine: {
+          type: String,
+          default: 'NO'
         }
       },
       methods: {
         updateValue: function (value) {
           this.$emit('input', value)
         },
+        addNewRow: function (value) {
+          if(value !== '') {
+            this.$emit('add-new-row')
+          }
+        }
       }
     })
 
     new Vue({
       el: '#app',
       data: {
-        messages : [{ logical: 'hello' }, { logical: 'vue' }]
+        messages : [{ logical: '' }]
       },
       methods: {
         physical: function (index) {
           return this.messages[index].logical
         },
         business: function (index) {
-          return 'Calculating business...' + this.messages[index].logical
+          return this.messages[index].logical
+        },
+        standardDefine: function (index) {
+          if(this.messages[index].logical.length % 2 === 0) {
+            return 'YES'
+          } else {
+            return 'NO'
+          }
+        },
+        addNewRow: function (index) {
+          this.messages.splice(index+1,0,{ logical: 'insertRow' })
         }
       }
     })
