@@ -7,8 +7,9 @@
 <body>
 
   <div id="app">
+    <textarea ref="multiLineInput" v-on:blur="splitData" hidden></textarea>
     <template v-for="(msg,index) in messages">
-      <currency-input
+      <computed-logical
         v-model="msg.logical"
         v-bind:get-id="getId(index)"
         v-bind:physical="physical(index)"
@@ -16,23 +17,25 @@
         v-bind:standard-define="standardDefine(index)"
         v-on:add-new-row="addNewRow(index)"
         v-on:delete-row="deleteRow(index)"
-      ></currency-input>
+      ></computed-logical>
     </template>
   </div>
 
   <script src="https://unpkg.com/lodash@4.13.1/lodash.min.js"></script>
   <script>
 
-    Vue.component('currency-input', {
+    const textArea = document.getElementById("textArea")
+
+    Vue.component('computed-logical', {
       template: '\
         <div>\
           <button v-on:click="deleteRow()">Delete</button>\
           <input\
-            ref="input"\
-            v-bind:id="getId"\
+            ref="getId"\
             v-bind:value="value"\
             v-on:input="updateValue($event.target.value)"\
             v-on:keyup.enter="addNewRow($event.target.value)"\
+            v-on:paste="sendToTextarea()"\
           >\
           {{ physical }}\
           {{ business }}\
@@ -74,7 +77,16 @@
           this.$emit('delete-row')
         },
         setFocus: function () {
-          document.getElementById(this.getId).focus();
+          this.$refs.getId.focus()
+        },
+        sendToTextarea: function(e) {
+          this.$parent.$refs.multiLineInput.removeAttribute('hidden')
+          this.$parent.$refs.multiLineInput.focus()
+
+          setTimeout(this.focusOnInput, 10);
+        },
+        focusOnInput: function() {
+          this.$refs.getId.focus()
         }
       },
       mounted: function () {
@@ -114,6 +126,19 @@
           if( this.messages.length > 1 ) {
             this.messages.splice(index,1)
           }
+        },
+        splitData: function() {
+          if(this.messages[this.messages.length-1].logical === ''){
+            this.messages.pop()
+          }
+
+          this.$refs.multiLineInput.value.split('\n').forEach(this.pushData)
+
+          this.$refs.multiLineInput.value = ''
+          this.$refs.multiLineInput.setAttribute("hidden","hidden");
+        },
+        pushData: function(value, index) {
+          this.messages.push({ logical: value })
         }
       }
     })
