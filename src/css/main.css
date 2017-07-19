@@ -1,0 +1,44 @@
+a:hover {
+  text-decoration: none;
+}
+
+input {
+    width: 100%; /* force to expand to container's width */
+}
+
+table th {
+  color: #959A95;
+  font-size: 40;
+  font-weight: bold;
+}
+
+table td {
+  color: #959A95;
+  font-size: 20;
+  font-weight: 400;
+}
+
+.center-align {
+  text-align: center;
+}
+
+.navigation a {
+  text-align: center;
+  margin: auto;
+  padding: 15px 35px;
+}
+
+.navigation .show-all {
+  color: #757575;
+  background-color: #F4F4F4;
+}
+
+.navigation .manage-data {
+  color: #FFFFFF;
+  background-color: #4486F7;
+  border-radius: 3px;
+}
+
+#headerView img {
+  margin: 20px;
+}

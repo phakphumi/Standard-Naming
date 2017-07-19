@@ -2,54 +2,130 @@
 <html>
 <head>
   <title>Standard Naming</title>
+
+  <link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap@next/dist/css/bootstrap.min.css"/>
+  <link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css"/>
+  <link type="text/css" rel="stylesheet" href="/src/css/main.css">
+
   <script src="https://unpkg.com/vue"></script>
+  <script src="//unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
+  <script src="//unpkg.com/tether@latest/dist/js/tether.min.js"></script>
+  <script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
+  <script src="https://use.fontawesome.com/aba086f1e8.js"></script>
 </head>
 <body>
 
-  <div id="app">
-    <textarea ref="multiLineInput" v-on:blur="splitData" hidden></textarea>
-    <template v-for="(msg,index) in messages">
-      <computed-logical
-        v-model="msg.logical"
-        v-bind:get-id="getId(index)"
-        v-bind:physical="physical(index)"
-        v-bind:business="business(index)"
-        v-bind:standard-define="standardDefine(index)"
-        v-on:add-new-row="addNewRow(index)"
-        v-on:delete-row="deleteRow(index)"
-      ></computed-logical>
-    </template>
+  <div id="headerView" class="row align-items-center">
+    <banner banner-class="col-5" image-source="./src/imgs/logo@2x.png"></banner>
+    <navigation navigation-class="row align-items-center offset-3 col-4"></navigation>
+  </div>
+
+  <div id="processingTable">
+    <textarea ref="tempField" v-on:blur="splitData" hidden></textarea>
+    <table class="table">
+      <thead>
+        <tr>
+          <th width="5%"></th>
+          <th class="center-align" width="20%">Logical</th>
+          <th class="center-align"width="20%">Physical</th>
+          <th class="center-align"width="25%">Business</th>
+          <th class="center-align" width="17.5%">Standard Define</th>
+          <th class="center-align" width="17.5%">Length</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template v-for="(msg,index) in messages">
+          <grid-row
+            v-model="msg.logical"
+            v-bind:physical="getPhysical(index)"
+            v-bind:business="getBusiness(index)"
+            v-bind:standard-define="getStandardDefine(index)"
+            v-bind:length="getLength(index)"
+            v-on:add-new-row="addNewRow(index)"
+            v-on:delete-row="deleteRow(index)"
+          ></grid-row>
+        </template>
+      </tbody>
+    </table>
   </div>
 
   <script src="https://unpkg.com/lodash@4.13.1/lodash.min.js"></script>
   <script>
 
-    const textArea = document.getElementById("textArea")
-
-    Vue.component('computed-logical', {
+    Vue.component('banner', {
       template: '\
-        <div>\
-          <button v-on:click="deleteRow()">Delete</button>\
-          <input\
-            ref="getId"\
-            v-bind:value="value"\
-            v-on:input="updateValue($event.target.value)"\
-            v-on:keyup.enter="addNewRow($event.target.value)"\
-            v-on:paste="sendToTextarea()"\
-          >\
-          {{ physical }}\
-          {{ business }}\
-          {{ standardDefine }}\
+        <div v-bind:class="bannerClass">\
+          <img class="col-12" v-bind:src="imageSource">\
         </div>\
+      ',
+      props: {
+        imageSource: {
+          type: String,
+          default: './src/imgs/logo@2x.png'
+        },
+        bannerClass: {
+          type: String,
+          default: 'col-5'
+        }
+      },
+    })
+
+    Vue.component('navigation', {
+      template: '\
+        <div v-bind:class="navigationClass" class="navigation">\
+          <div class="offset-1 col-5">\
+            <a class="show-all" href="#">Show All</a>\
+          </div>\
+          <div class="col-6">\
+            <a class="manage-data" href="#">Manage Data</a>\
+          </div>\
+        </div>\
+      ',
+      props: {
+        navigationClass: {
+          type: String,
+          default: 'offset-3 col-4'
+        }
+      },
+    })
+
+    new Vue({
+      el: '#headerView',
+    })
+
+    Vue.component('grid-row', {
+      template: '\
+        <tr>\
+          <td class="center-align">\
+            <a href="#" v-on:click="deleteRow()"><img src="/src/imgs/remove.png" width="15" height="15"></a>\
+          </td>\
+          <td>\
+            <input\
+              ref="logical"\
+              v-bind:value="value"\
+              v-on:input="updateValue($event.target.value)"\
+              v-on:keyup.enter="addNewRow($event.target.value)"\
+              v-on:paste="sendToTextarea()"\
+            >\
+          </td>\
+          <td>\
+            {{ physical }}\
+          </td>\
+          <td>\
+            {{ business }}\
+          </td>\
+          <td ref="std_def" class="center-align">\
+            {{ standardDefine }}\
+          </td>\
+          <td ref="length" class="center-align">\
+            {{ length }}\
+          </td>\
+        </tr>\
       ',
       props: {
         value: {
           type: String,
           default: ''
-        },
-        getId: {
-          type: String,
-          default: 'logical-0'
         },
         physical: {
           type: String,
@@ -62,6 +138,10 @@
         standardDefine: {
           type: String,
           default: 'NO'
+        },
+        length: {
+          type: Number,
+          default: 0
         }
       },
       methods: {
@@ -77,50 +157,69 @@
           this.$emit('delete-row')
         },
         setFocus: function () {
-          this.$refs.getId.focus()
+          this.$refs.logical.focus()
         },
         sendToTextarea: function(e) {
-          this.$parent.$refs.multiLineInput.removeAttribute('hidden')
-          this.$parent.$refs.multiLineInput.focus()
+          this.$parent.$refs.tempField.removeAttribute('hidden')
+          this.$parent.$refs.tempField.focus()
 
           setTimeout(this.focusOnInput, 10);
         },
         focusOnInput: function() {
-          this.$refs.getId.focus()
+          this.$refs.logical.focus()
+        },
+        changeFontInRowColor: function() {
+          if(this.$refs.std_def.textContent.trim() === 'YES') {
+            this.$refs.std_def.style.color="GREEN"
+          } else {
+            this.$refs.std_def.style.color="RED"
+          }
+
+          if(this.$refs.length.textContent.trim() > 30) {
+            this.$refs.length.style.color="RED"
+          } else {
+            this.$refs.length.style.color="#959A95"
+          }
         }
       },
       mounted: function () {
         this.setFocus()
+        this.changeFontInRowColor()
       },
       updated: function () {
         this.setFocus()
+        this.changeFontInRowColor()
       },
     })
 
     new Vue({
-      el: '#app',
+      el: '#processingTable',
       data: {
-        messages : [{ logical: '' }]
+        messages : [{ logical: '', physical: '', business: '', standardDefine: 'NO', length: 0 }]
       },
       methods: {
-        getId: function (index) {
-          return "logical-" + index
+        getPhysical: function (index) {
+          this.messages[index].physical = this.messages[index].logical
+          return this.messages[index].physical
         },
-        physical: function (index) {
-          return this.messages[index].logical
+        getBusiness: function (index) {
+          this.messages[index].business = this.messages[index].logical
+          return this.messages[index].business
         },
-        business: function (index) {
-          return this.messages[index].logical
-        },
-        standardDefine: function (index) {
-          if(this.messages[index].logical.length % 2 === 0) {
-            return 'YES'
+        getStandardDefine: function (index) {
+          if(this.messages[index].physical.length % 2 === 0) {
+            this.messages[index].standardDefine = 'YES'
           } else {
-            return 'NO'
+            this.messages[index].standardDefine = 'NO'
           }
+          return this.messages[index].standardDefine
+        },
+        getLength: function (index) {
+          this.messages[index].length = this.messages[index].logical.length
+          return this.messages[index].length
         },
         addNewRow: function (index) {
-          this.messages.splice(index+1,0,{ logical: '' })
+          this.messages.splice(index+1,0,{ logical: '', physical: '', business: '', standardDefine: 'NO', length: 0 })
         },
         deleteRow: function (index) {
           if( this.messages.length > 1 ) {
@@ -132,13 +231,13 @@
             this.messages.pop()
           }
 
-          this.$refs.multiLineInput.value.split('\n').forEach(this.pushData)
+          this.$refs.tempField.value.split(/\r?\n/g).forEach(this.pushData)
 
-          this.$refs.multiLineInput.value = ''
-          this.$refs.multiLineInput.setAttribute("hidden","hidden");
+          this.$refs.tempField.value = ''
+          this.$refs.tempField.setAttribute("hidden","hidden");
         },
         pushData: function(value, index) {
-          this.messages.push({ logical: value })
+          this.messages.push({ logical: value, physical: '', business: '', standardDefine: 'NO', length: 0 })
         }
       }
     })
