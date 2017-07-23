@@ -39,6 +39,10 @@ table td {
   border-radius: 3px;
 }
 
+.physical-false {
+  color: red;
+}
+
 #headerView img {
   margin: 20px;
 }
