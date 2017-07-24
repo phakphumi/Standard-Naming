@@ -1,7 +1,7 @@
 <template>
     <tr id="tableRow">
         <td class="center-align">
-            <a href="#" v-on:click="deleteRow()"><img src="../assets/images/remove.png" width="15" height="15"></a>
+            <a href="#" v-on:click="deleteRow()" title="Delete row"><img src="../assets/images/remove.png" width="15" height="15"></a>
         </td>
         <td>
             <input

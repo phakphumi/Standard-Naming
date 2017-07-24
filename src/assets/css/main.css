@@ -22,6 +22,11 @@ table td {
   text-align: center;
 }
 
+.hidden-copy-button {
+  background-color: transparent;
+  border-style: none;
+}
+
 .navigation a {
   text-align: center;
   margin: auto;

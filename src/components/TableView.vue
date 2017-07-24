@@ -1,10 +1,23 @@
 <template>
     <div id="tableView">
-        <textarea ref="tempField" v-on:blur="splitData" class="text-area-hidden" hidden></textarea>
+        <div col-12>
+            <textarea ref="tempField" v-on:blur="splitData" class="text-area-hidden" hidden></textarea>
+            <button
+                class="hidden-copy-button"
+                ref="copyData"
+                v-clipboard="copyData"
+                v-on:success="handleClipboardSuccess"
+                v-on:error="handleClipboardError"
+            ></button>
+        </div>
         <table class="table">
             <thead>
                 <tr>
-                    <th width="5%"></th>
+                    <th class="center-align" width="5%">
+                        <a href="#" v-on:click="updateCopyData(rowData)" title="Copy data to clipboard">
+                            <img src="../assets/images/clippy.svg" width="25" height="25">
+                        </a>
+                    </th>
                     <th class="center-align" width="20%">Logical</th>
                     <th class="center-align"width="20%">Physical</th>
                     <th class="center-align"width="25%">Business</th>
@@ -13,13 +26,13 @@
                 </tr>
             </thead>
             <tbody>
-                <template v-for="(msg,index) in messages">
+                <template v-for="(data,index) in rowData">
                     <table-row
-                        v-model="msg.logical"
-                        v-bind:physical="msg.physical"
-                        v-bind:business="msg.business"
-                        v-bind:standard-define="msg.standardDefine"
-                        v-bind:length="msg.length"
+                        v-model="data.logical"
+                        v-bind:physical="data.physical"
+                        v-bind:business="data.business"
+                        v-bind:standard-define="data.standardDefine"
+                        v-bind:length="data.length"
                         v-on:update-data="waitForStopTyping(index)"
                         v-on:add-new-row="addNewRow(index)"
                         v-on:delete-row="deleteRow(index)"
@@ -38,7 +51,7 @@ export default {
     name: 'tableView',
     data: function() {
             return { 
-                    messages : [{
+                    rowData : [{
                         logical: '',
                         physical: [{
                             value:'Waiting for your input...', 
@@ -47,12 +60,13 @@ export default {
                         business: '',
                         standardDefine: '',
                         length: 0
-                    }]
+                    }],
+                    copyData : 'copyData'
             }
     },
     methods: {
         addNewRow: function (index) {
-            this.messages.splice(index+1,0,{
+            this.rowData.splice(index+1,0,{
                 logical: '',
                 physical: [{value:'Waiting for your input...', define: true}],
                 business: '',
@@ -61,36 +75,43 @@ export default {
             })
         },
         deleteRow: function (index) {
-            if( this.messages.length > 1 ) {
-                this.messages.splice(index,1)
+            if( this.rowData.length > 1 ) {
+                this.rowData.splice(index,1)
             }
         },
         getUpdateDataFromIndex: _.debounce(function(index) {
-            if(this.messages[index].logical) {
-                axios.get(`http://localhost:3000/match/${this.messages[index].logical}`)
+            if(this.rowData[index].logical) {
+                axios.get(`http://localhost:3000/match/${this.rowData[index].logical}`)
                 .then(function (res) {
                     if(res.data.success) {
-                        this.messages[index].physical = res.data.msg.physical
-                        this.messages[index].business = res.data.msg.business
-                        this.messages[index].standardDefine = res.data.msg.standardDefine
-                        this.messages[index].length = res.data.msg.physicalLength
+                        this.rowData[index].physical = res.data.msg.physical
+                        this.rowData[index].business = res.data.msg.business
+                        this.rowData[index].standardDefine = res.data.msg.standardDefine
+                        this.rowData[index].length = res.data.msg.physicalLength
                     }
                 }.bind(this))
                 .catch(function (err) {
                     console.log(err);
                 });
             } else {
-                this.messages[index].physical = [{value:'Waiting for your input...', define: true}]
-                this.messages[index].business = ''
-                this.messages[index].standardDefine = ''
-                this.messages[index].length = 0
+                this.rowData[index].physical = [{value:'Waiting for your input...', define: true}]
+                this.rowData[index].business = ''
+                this.rowData[index].standardDefine = ''
+                this.rowData[index].length = 0
             }
-        }, 1000),
+        }, 500),
+        handleClipboardSuccess: function(e) {
+            alert('Copy Success')
+        },
+        handleClipboardError: function(e) {
+            alert('Copy Failed')
+            console.log(e);
+        },
         pushData: function(value) {
             axios.get(`http://localhost:3000/match/${value}`)
             .then(function (res) {
                 if(res.data.success) {
-                    this.messages.push({
+                    this.rowData.push({
                         logical: value,
                         physical: res.data.msg.physical,
                         business: res.data.msg.business,
@@ -104,8 +125,8 @@ export default {
             });
         },
         splitData: function() {
-            if(this.messages[this.messages.length-1].logical === ''){
-                this.messages.pop()
+            if(this.rowData[this.rowData.length-1].logical === ''){
+                this.rowData.pop()
             }
 
             this.$refs.tempField.value.split(/\r?\n/g).forEach(this.pushData)
@@ -113,14 +134,44 @@ export default {
             this.$refs.tempField.value = ''
             this.$refs.tempField.setAttribute("hidden","hidden");
         },
+        updateCopyData: function(rowData) {
+            Promise.all(rowData.map(function(data) {
+                return new Promise(function(resolve, reject) {
+                    Promise.all(data.physical.map(function(physical) {
+                        return new Promise(function(resolve, reject) {
+                            resolve(physical.value)
+                        })
+                    })).then(function(res) {
+                        var combinePhysical = res.reduce(function(a, b) {
+                            return a + '_' + b
+                        })
+
+                        return combinePhysical
+                    }).then(function(combinePhysical){
+                        resolve(data.logical + '\t' + combinePhysical + '\t' + data.business)
+                    })
+                })
+            })).then(function(data) {
+                var rowData = data.reduce(function(a, b) {
+                    return a + '\n' + b
+                })
+
+                return rowData
+            }).then(function(rowData){
+                this.copyData = rowData
+            }.bind(this))
+            .then(function() {
+                this.$refs.copyData.click()
+            }.bind(this))
+        },
         waitForStopTyping: function(index) {
-            this.messages[index].physical = [{
+            this.rowData[index].physical = [{
                 value:'Waiting for you stop typing...', 
                 define: true
             }]
-            this.messages[index].business = ''
-            this.messages[index].standardDefine = ''
-            this.messages[index].length = 0
+            this.rowData[index].business = ''
+            this.rowData[index].standardDefine = ''
+            this.rowData[index].length = 0
 
             this.getUpdateDataFromIndex(index)
         }
