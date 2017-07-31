@@ -33,12 +33,17 @@ table td {
   padding: 15px 35px;
 }
 
-.navigation .show-all {
+.navigation .nav-gray {
   color: #757575;
   background-color: #F4F4F4;
 }
 
-.navigation .manage-data {
+.navigation .nav-green {
+  color: #FFFFFF;
+  background-color: #00A94E;
+}
+
+.navigation .nav-blue {
   color: #FFFFFF;
   background-color: #4486F7;
   border-radius: 3px;

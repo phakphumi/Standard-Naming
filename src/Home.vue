@@ -1,19 +1,18 @@
 <template>
     <div id="app">
-      <header-view></header-view>
+      <home-header></home-header>
       <table-view></table-view>
     </div>
 </template>
 
 <script>
-  import HeaderView from './components/HeaderView'
+  import HomeHeader from './components/HomeHeader'
   import TableView from './components/TableView'
-  import './assets/css/main.css'
 
   export default {
     name: 'app',
     components: {
-      HeaderView,
+      HomeHeader,
       TableView
     }
   }

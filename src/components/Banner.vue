@@ -1,6 +1,8 @@
 <template>
   <div id="banner" v-bind:class="bannerClass">
-    <img class="col-12" src="../assets/images/logo@2x.png">
+    <a href="/">
+      <img class="col-12" src="../assets/images/logo@2x.png">
+    </a>
   </div>
 </template>
 

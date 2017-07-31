@@ -1,10 +1,10 @@
 <template>
   <div id="navigation" v-bind:class="navigationClass" class="navigation">
     <div class="offset-1 col-5">
-      <a class="show-all" href="#">Show All</a>
+      <a class="nav-gray" href="/show">Show All</a>
     </div>
     <div class="col-6">
-      <a class="manage-data" href="#">Manage Data</a>
+      <a class="nav-blue" href="/manage">Manage Data</a>
     </div>
   </div>
 </template>
